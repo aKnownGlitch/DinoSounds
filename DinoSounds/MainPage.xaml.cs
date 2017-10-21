@@ -28,6 +28,7 @@ namespace DinoSounds
     {
         private DispatcherTimer timer;
         private MediaPlayer mediaplayer;
+        private MediaPlayer silence;
         private int dinoSound = 0; // Will get incremented to 1 first time
         private const int lastSound = 11;
         private bool playing = false;
@@ -36,7 +37,24 @@ namespace DinoSounds
             this.InitializeComponent();
             InitPlayer();
             InitIO();
+            PlaySilence();
             PlaySound("init");
+        }
+
+        private async void PlaySilence()
+        {
+            silence = new MediaPlayer();
+            silence.IsLoopingEnabled = true;
+            StorageFile file = await StorageFile.GetFileFromApplicationUriAsync(new Uri("ms-appx:///Sounds/Silence.wav"));
+            var mediasource = MediaSource.CreateFromStorageFile(file);
+            silence.Source = mediasource;
+            silence.MediaEnded += Silence_MediaEnded;
+            silence.Play();
+        }
+
+        private void Silence_MediaEnded(MediaPlayer sender, object args)
+        {
+            silence.Position = TimeSpan.Zero;
         }
 
         private void InitPlayer()
@@ -90,7 +108,15 @@ namespace DinoSounds
         {
             if (!playing)
             {
-                if ((Inputs & 1 << PFDII.IN0) != 0)
+                var sw0 = (Inputs & 1 << PFDII.IN0) == 0;
+                var sw1 = (Inputs & 1 << PFDII.IN1) == 0;
+                var sw2 = (Inputs & 1 << PFDII.IN2) == 0;
+                var sw3 = (Inputs & 1 << PFDII.IN3) == 0;
+                var in4 = (Inputs & 1 << PFDII.IN4) == 0;
+                var in5 = (Inputs & 1 << PFDII.IN5) == 0;
+                var in6 = (Inputs & 1 << PFDII.IN6) == 0;
+                var in7 = (Inputs & 1 << PFDII.IN7) == 0;
+                if (sw0 || sw1 || sw2 || sw3 || in4 || in5 || in6 || in7)
                 {
                     PlayNext();
                 }
